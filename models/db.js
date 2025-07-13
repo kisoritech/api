@@ -1,12 +1,20 @@
-const mysql = require("mysql2/promise");
+const { Pool } = require("pg");
 require("dotenv").config();
 
-const db = mysql.createPool({
+const pool = new Pool({
   host: process.env.DB_HOST,
-  port: process.env.DB_PORT, // ← IMPORTANTE!
+  port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-module.exports = db;
+// Exporta um objeto com a função query, para usar igual nos controllers
+module.exports = {
+  query: (text, params) => pool.query(text, params)
+};
+
+

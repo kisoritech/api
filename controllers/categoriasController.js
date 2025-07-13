@@ -2,8 +2,13 @@ const db = require("../models/db");
 
 // LISTAR
 exports.listarCategorias = async (req, res) => {
-  const [categorias] = await db.query("SELECT * FROM categorias");
-  res.json(categorias);
+  try {
+    const resultado = await db.query("SELECT * FROM categorias");
+    res.json(resultado.rows);
+  } catch (error) {
+    console.error("Erro ao listar categorias:", error);
+    res.status(500).json({ erro: "Erro ao listar categorias" });
+  }
 };
 
 // CRIAR
@@ -11,13 +16,13 @@ exports.criarCategoria = async (req, res) => {
   const { nome, descricao, criado_por, atualizado_por } = req.body;
 
   try {
-    const [result] = await db.query(`
-      INSERT INTO categorias (nome, descricao, criado_por, atualizado_por)
-      VALUES (?, ?, ?, ?)`,
+    const resultado = await db.query(
+      `INSERT INTO categorias (nome, descricao, criado_por, atualizado_por)
+       VALUES ($1, $2, $3, $4) RETURNING id`,
       [nome, descricao, criado_por, atualizado_por]
     );
 
-    res.status(201).json({ id: result.insertId, nome });
+    res.status(201).json({ id: resultado.rows[0].id, nome });
   } catch (error) {
     console.error("Erro ao criar categoria:", error);
     res.status(500).json({ erro: "Erro ao criar categoria" });
@@ -30,9 +35,8 @@ exports.atualizarCategoria = async (req, res) => {
   const { nome, descricao, atualizado_por } = req.body;
 
   try {
-    await db.query(`
-      UPDATE categorias SET nome = ?, descricao = ?, atualizado_por = ?
-      WHERE id = ?`,
+    await db.query(
+      `UPDATE categorias SET nome = $1, descricao = $2, atualizado_por = $3 WHERE id = $4`,
       [nome, descricao, atualizado_por, id]
     );
 
@@ -48,10 +52,11 @@ exports.deletarCategoria = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await db.query("DELETE FROM categorias WHERE id = ?", [id]);
+    await db.query("DELETE FROM categorias WHERE id = $1", [id]);
     res.json({ mensagem: "Categoria deletada com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar categoria:", error);
     res.status(500).json({ erro: "Erro ao deletar categoria" });
   }
 };
+

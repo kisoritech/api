@@ -3,14 +3,14 @@ const db = require("../models/db");
 // LISTAR MOVIMENTAÇÕES FINANCEIRAS
 exports.listarMovimentacoes = async (req, res) => {
   try {
-    const [resultados] = await db.query(`
+    const resultado = await db.query(`
       SELECT f.*, u.nome AS usuario_nome
       FROM financeiro f
       LEFT JOIN usuarios u ON f.usuario_id = u.id
       ORDER BY f.data DESC
     `);
 
-    res.json(resultados);
+    res.json(resultado.rows);
   } catch (error) {
     console.error("Erro ao listar movimentações:", error);
     res.status(500).json({ erro: "Erro ao buscar movimentações financeiras" });
@@ -24,9 +24,8 @@ exports.criarMovimentacao = async (req, res) => {
   try {
     await db.query(`
       INSERT INTO financeiro (descricao, tipo, valor, categoria_financeira, usuario_id)
-      VALUES (?, ?, ?, ?, ?)`,
-      [descricao, tipo, valor, categoria_financeira, usuario_id]
-    );
+      VALUES ($1, $2, $3, $4, $5)
+    `, [descricao, tipo, valor, categoria_financeira, usuario_id]);
 
     res.status(201).json({ mensagem: "Movimentação registrada com sucesso" });
   } catch (error) {
@@ -34,3 +33,4 @@ exports.criarMovimentacao = async (req, res) => {
     res.status(500).json({ erro: "Erro ao registrar movimentação" });
   }
 };
+

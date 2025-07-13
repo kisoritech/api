@@ -9,7 +9,12 @@ exports.login = async (req, res) => {
   }
 
   try {
-    const [[usuario]] = await db.query("SELECT * FROM usuarios WHERE email = ?", [email]);
+    const result = await db.query(
+      "SELECT * FROM usuarios WHERE email = $1",
+      [email]
+    );
+
+    const usuario = result.rows[0];
 
     if (!usuario) {
       return res.status(401).json({ erro: "Usuário não encontrado." });
@@ -23,10 +28,9 @@ exports.login = async (req, res) => {
 
     delete usuario.senha;
 
-    // 🔧 Retorno agora está dentro de "usuario"
     return res.status(200).json({
       mensagem: "Login bem-sucedido",
-      usuario: usuario
+      usuario
     });
 
   } catch (erro) {
@@ -34,6 +38,7 @@ exports.login = async (req, res) => {
     return res.status(500).json({ erro: "Erro interno ao tentar fazer login." });
   }
 };
+
 
 
 
